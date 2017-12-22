@@ -2,9 +2,9 @@ package com.looker.sql_query_parser
 
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
-import com.looker.sql_query_parser.parser.MySQLLexer;
+import com.looker.sql_query_parser.parser.MySQLLexer
 import com.looker.sql_query_parser.parser.MySQLParser
-import java.io.ByteArrayInputStream
+import java.io.*
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.lang.Exception
 
@@ -18,8 +18,8 @@ fun main(args: Array<String>) {
 //
 //        val parser = MySQLParser(tokenStream)
 //
-//        val rootContext = parser.root();
-//    } catch() {
+//        val rootContext = parser.root()
+//    } catch(e: Throwable) {
 //        println(e.message)
 //        e.printStackTrace()
 //    }

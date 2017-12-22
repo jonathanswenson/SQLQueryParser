@@ -19,12 +19,10 @@ public class SimpleTest {
 
         val parser = MySQLParser(tokenStream)
         // use error listener to throw exception when parser fails (as opposed to just printing to console)
-        parser.removeErrorListeners();
+        parser.removeErrorListeners()
         parser.addErrorListener(ThrowingErrorListener.INSTANCE)
 
         val rootContext = parser.root();
-
-
 
         println("HEYTEST")
     }
