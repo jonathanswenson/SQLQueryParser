@@ -36,41 +36,62 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <version>4.7.1</version>
-
-                <configuration>
-                    <arguments>
-                        <argument>-package</argument>
-                        <argument>com.looker.sql_query_parser.parser</argument>
-                    </arguments>
-                </configuration>
-
                 <executions>
                     <execution>
-                        <id>run antlr</id>
-                        <phase>generate-sources</phase>
                         <goals>
                             <goal>antlr4</goal>
                         </goals>
-                        <configuration>
-                            <sourceDirectory>src/main/java/com/looker/sql_query_parser/parser</sourceDirectory>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>com.looker.sql_query_parser.MainKt</mainClass>
-                        </manifest>
-                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>simple-command</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attached</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/target/generated-sources/antlr4/antlr</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -87,6 +108,19 @@
                 </executions>
                 <configuration>
                     <finalName>${project.artifactId}-${project.version}</finalName>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.looker.sql_query_parser.parser.Main</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
 
@@ -117,118 +151,183 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-compiler-plugin</artifactId>-->
-                <!--<version>3.5.1</version>-->
-                <!--<configuration>-->
-                    <!--<source>1.8</source>-->
-                    <!--<target>1.8</target>-->
-                <!--</configuration>-->
-
-                <!--<executions>-->
-                    <!--&lt;!&ndash; Replacing default-compile as it is treated specially by maven &ndash;&gt;-->
-                    <!--<execution>-->
-                        <!--<id>default-compile</id>-->
-                        <!--<phase>none</phase>-->
-                    <!--</execution>-->
-                    <!--&lt;!&ndash; Replacing default-testCompile as it is treated specially by maven &ndash;&gt;-->
-                    <!--<execution>-->
-                        <!--<id>default-testCompile</id>-->
-                        <!--<phase>none</phase>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>java-compile</id>-->
-                        <!--<phase>compile</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>compile</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>java-test-compile</id>-->
-                        <!--<phase>test-compile</phase>-->
-                        <!--<goals> <goal>testCompile</goal> </goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-jar-plugin</artifactId>-->
-                <!--<version>2.6</version>-->
-                <!--<configuration>-->
-                    <!--<archive>-->
-                        <!--<manifest>-->
-                            <!--<addClasspath>true</addClasspath>-->
-                            <!--<mainClass>${main.class}</mainClass>-->
-                        <!--</manifest>-->
-                    <!--</archive>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-source-plugin</artifactId>-->
-                <!--<version>2.1.1</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>attach-sources</id>-->
-                        <!--<phase>verify</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>jar-no-fork</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-            <!--<plugin>-->
-            <!--<groupId>org.codehaus.mojo</groupId>-->
-            <!--<artifactId>build-helper-maven-plugin</artifactId>-->
-            <!--<version>3.0.0</version>-->
-            <!--<executions>-->
-            <!--<execution>-->
-            <!--<id>add-source</id>-->
-            <!--<phase>generate-sources</phase>-->
-            <!--<goals>-->
-            <!--<goal>add-source</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-            <!--<sources>-->
-            <!--<source>${project.basedir}/target/generated-sources/antlr4</source>-->
-            <!--</sources>-->
-            <!--</configuration>-->
-            <!--</execution>-->
-            <!--</executions>-->
-            <!--</plugin>-->
-            <!--<plugin>-->
-            <!--<artifactId>kotlin-maven-plugin</artifactId>-->
-            <!--<groupId>org.jetbrains.kotlin</groupId>-->
-            <!--<version>${kotlin.version}</version>-->
-            <!--<executions>-->
-            <!--<execution>-->
-            <!--<id>compile</id>-->
-            <!--<goals> <goal>compile</goal> </goals>-->
-            <!--<configuration>-->
-            <!--<sourceDirs>-->
-            <!--<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>-->
-            <!--<sourceDir>${project.basedir}/src/main/java</sourceDir>-->
-            <!--<sourceDir>${project.basedir}/target/generated-sources/antlr4</sourceDir>-->
-            <!--</sourceDirs>-->
-            <!--</configuration>-->
-            <!--</execution>-->
-            <!--<execution>-->
-            <!--<id>test-compile</id>-->
-            <!--<goals>-->
-            <!--<goal>test-compile</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-            <!--<sourceDirs>-->
-            <!--<sourceDir>${project.basedir}/src/test/kotlin</sourceDir>-->
-            <!--<sourceDir>${project.basedir}/src/test/java</sourceDir>-->
-            <!--</sourceDirs>-->
-            <!--</configuration>-->
-            <!--</execution>-->
-            <!--</executions>-->
-            <!--</plugin>-->
         </plugins>
-        <!-- https://kotlinlang.org/docs/reference/using-maven.html -->
-
     </build>
+
+
+
+    <!--<build>-->
+    <!--<plugins>-->
+    <!--<plugin>-->
+    <!--<groupId>org.antlr</groupId>-->
+    <!--<artifactId>antlr4-maven-plugin</artifactId>-->
+    <!--<version>4.7.1</version>-->
+
+    <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;<arguments>&ndash;&gt;-->
+    <!--&lt;!&ndash;<argument>-package</argument>&ndash;&gt;-->
+    <!--&lt;!&ndash;<argument>com.looker.sql_query_parser.parser</argument>&ndash;&gt;-->
+    <!--&lt;!&ndash;</arguments>&ndash;&gt;-->
+    <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+
+    <!--<executions>-->
+    <!--<execution>-->
+    <!--<id>run antlr</id>-->
+    <!--<phase>generate-sources</phase>-->
+    <!--<goals>-->
+    <!--<goal>antlr4</goal>-->
+    <!--</goals>-->
+    <!--<configuration>-->
+    <!--<outputDirectory>${basedir}/target/generated-sources/antlr4/antlr</outputDirectory>-->
+    <!--<sourceDirectory>src/main/antlr</sourceDirectory>-->
+    <!--<visitor>true</visitor>-->
+    <!--</configuration>-->
+    <!--</execution>-->
+    <!--</executions>-->
+    <!--</plugin>-->
+    <!--<plugin>-->
+    <!--<groupId>org.apache.maven.plugins</groupId>-->
+    <!--<artifactId>maven-jar-plugin</artifactId>-->
+    <!--<configuration>-->
+    <!--<archive>-->
+    <!--<manifest>-->
+    <!--<addClasspath>true</addClasspath>-->
+    <!--<mainClass>com.looker.sql_query_parser.parser.Main</mainClass>-->
+    <!--</manifest>-->
+    <!--</archive>-->
+    <!--</configuration>-->
+    <!--</plugin>-->
+
+
+
+    <!--&lt;!&ndash;<plugin>&ndash;&gt;-->
+    <!--&lt;!&ndash;<artifactId>kotlin-maven-plugin</artifactId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<groupId>org.jetbrains.kotlin</groupId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<version>${kotlin.version}</version>&ndash;&gt;-->
+    <!--&lt;!&ndash;<executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goal>compile</goal>&ndash;&gt;-->
+    <!--&lt;!&ndash;</goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/generated-sources/antlr</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/main/java</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;</sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>test-compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goal>test-compile</goal>&ndash;&gt;-->
+    <!--&lt;!&ndash;</goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/generated-sources/antlr</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/test/kotlin</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/test/java</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;</sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;</executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+    <!--<plugin>-->
+    <!--<groupId>org.apache.maven.plugins</groupId>-->
+    <!--<artifactId>maven-compiler-plugin</artifactId>-->
+    <!--<version>3.5.1</version>-->
+    <!--<configuration>-->
+    <!--<source>1.8</source>-->
+    <!--<target>1.8</target>-->
+    <!--</configuration>-->
+    <!--</plugin>-->
+
+    <!--&lt;!&ndash;<executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;&lt;!&ndash; Replacing default-compile as it is treated specially by maven &ndash;&gt;&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>default-compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<phase>none</phase>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;&lt;!&ndash; Replacing default-testCompile as it is treated specially by maven &ndash;&gt;&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>default-testCompile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<phase>none</phase>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>java-compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<phase>compile</phase>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goal>compile</goal>&ndash;&gt;-->
+    <!--&lt;!&ndash;</goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>java-test-compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<phase>test-compile</phase>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals> <goal>testCompile</goal> </goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;</executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+    <!--&lt;!&ndash;<plugin>&ndash;&gt;-->
+    <!--&lt;!&ndash;<groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<artifactId>maven-jar-plugin</artifactId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<version>2.6</version>&ndash;&gt;-->
+    <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;<archive>&ndash;&gt;-->
+    <!--&lt;!&ndash;<manifest>&ndash;&gt;-->
+    <!--&lt;!&ndash;<addClasspath>true</addClasspath>&ndash;&gt;-->
+    <!--&lt;!&ndash;<mainClass>${main.class}</mainClass>&ndash;&gt;-->
+    <!--&lt;!&ndash;</manifest>&ndash;&gt;-->
+    <!--&lt;!&ndash;</archive>&ndash;&gt;-->
+    <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+    <!--&lt;!&ndash;<plugin>&ndash;&gt;-->
+    <!--&lt;!&ndash;<groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<artifactId>maven-source-plugin</artifactId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<version>2.1.1</version>&ndash;&gt;-->
+    <!--&lt;!&ndash;<executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>attach-sources</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<phase>verify</phase>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goal>jar-no-fork</goal>&ndash;&gt;-->
+    <!--&lt;!&ndash;</goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;</executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+
+    <!--&lt;!&ndash;<plugin>&ndash;&gt;-->
+    <!--&lt;!&ndash;<artifactId>kotlin-maven-plugin</artifactId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<groupId>org.jetbrains.kotlin</groupId>&ndash;&gt;-->
+    <!--&lt;!&ndash;<version>${kotlin.version}</version>&ndash;&gt;-->
+    <!--&lt;!&ndash;<executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals> <goal>compile</goal> </goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/main/java</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/target/generated-sources/antlr4</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;</sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;<id>test-compile</id>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<goal>test-compile</goal>&ndash;&gt;-->
+    <!--&lt;!&ndash;</goals>&ndash;&gt;-->
+    <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/test/kotlin</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;<sourceDir>${project.basedir}/src/test/java</sourceDir>&ndash;&gt;-->
+    <!--&lt;!&ndash;</sourceDirs>&ndash;&gt;-->
+    <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+    <!--&lt;!&ndash;</execution>&ndash;&gt;-->
+    <!--&lt;!&ndash;</executions>&ndash;&gt;-->
+    <!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+    <!--</plugins>-->
+    <!--&lt;!&ndash; https://kotlinlang.org/docs/reference/using-maven.html &ndash;&gt;-->
+
+    <!--</build>-->
 </project>

@@ -15,6 +15,7 @@ class ThrowingErrorListener : BaseErrorListener() {
     }
 
     companion object {
+        @JvmField
         val INSTANCE = ThrowingErrorListener()
     }
 }
