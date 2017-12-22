@@ -24,8 +24,10 @@ public class SimpleTest {
 
         val rootContext = parser.root();
 
+        val sqlStatementContext = rootContext.sqlStatements()
+
+//        for (thing in sqlStatementContext.
 
 
-        println("HEYTEST")
     }
 }
