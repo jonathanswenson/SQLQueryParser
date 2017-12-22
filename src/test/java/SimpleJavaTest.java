@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import com.looker.sql_query_parser.parser.ThrowingErrorListener;
 
 
-public class SimpleTest {
+public class SimpleJavaTest {
     @Test
     public void testsSomethingSimple() {
         ANTLRInputStream inputStream = new ANTLRInputStream("SELECT * FROM USERS");
@@ -22,6 +22,6 @@ public class SimpleTest {
         // use error listener to throw exception when parser fails (as opposed to just printing to console)
         parser.removeErrorListeners();
         parser.addErrorListener(ThrowingErrorListener.INSTANCE);
-
+        System.out.println("Hello, JTest");
     }
 }
