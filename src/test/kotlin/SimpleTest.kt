@@ -1,5 +1,5 @@
-import org.junit.Test
 
+import org.junit.Test
 import com.looker.sql_query_parser.parser.MySQLLexer
 import java.io.ByteArrayInputStream
 import org.antlr.v4.runtime.CharStreams
@@ -24,5 +24,7 @@ class SimpleTest {
         val rootContext = parser.root()
 
         val sqlStatementContext = rootContext.sqlStatements()
+
+        println(sqlStatementContext);
     }
 }

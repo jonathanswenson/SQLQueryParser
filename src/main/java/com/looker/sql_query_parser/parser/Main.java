@@ -1,23 +1,31 @@
 package com.looker.sql_query_parser.parser;
 
-import com.looker.sql_query_parser.parser.ThrowingErrorListener;
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 
 public class Main {
     public static void main(String[] args) {
-        ANTLRInputStream inputStream = new ANTLRInputStream("SELECT ** FROM USERS");
-        MySQLLexer lexer = new MySQLLexer(inputStream);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream("SELECT ** FROM USERS".getBytes());
+        try {
+            MySQLLexer lexer = new MySQLLexer(CharStreams.fromStream(inputStream));
+            CommonTokenStream tokenStream = new CommonTokenStream(lexer);
 
-        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+            MySQLParser parser = new MySQLParser(tokenStream);
 
-        MySQLParser parser = new MySQLParser(tokenStream);
+            // use error listener to throw exception when parser fails (as opposed to just printing to console)
+            parser.removeErrorListeners();
+            // unfortunately this does not work because the kotlin needs to be compiled first.
+            //  parser.addErrorListener(ThrowingErrorListener.INSTANCE);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
 
-        // use error listener to throw exception when parser fails (as opposed to just printing to console)
-        parser.removeErrorListeners();
-        parser.addErrorListener(ThrowingErrorListener.INSTANCE);
 
-        System.out.println("HEY");
+
+        System.out.println("HEY I'M USELESS NOW");
     }
 }
