@@ -47,17 +47,16 @@ class SimpleTest {
 //        val sql = "SELECT * FROM USERS U JOIN ORDERS O ON U.ID = O.USER_ID JOIN PART P ON P.ID = P.PART_ID"
         val root = preserveCase(sql)
         Assert.assertEquals("Should be 2 children", 2, root.childCount)
-        val children = root.children
+        val children = root.children.filter({ parseTree -> true })
         family(children)
     }
 
     private fun getChildren(node: ParseTree) : List<ParseTree> {
-        val list = node.children
-        val children = list.filterIsInstance<ParseTree>()
-                .apply { if (size != list.size) return null }
-        return children
+        val list = MutableList(node.childCount, {index : Int -> node.getChild(index)})
+        return list.filter({tree -> true})
     }
-    private fun family(children: MutableList<ParseTree>, indent: String = "") {
+
+    private fun family(children: List<ParseTree>, indent: String = "") {
         for (child in children) {
             println(indent + child.text)
             family(getChildren(child), indent + "\t")
