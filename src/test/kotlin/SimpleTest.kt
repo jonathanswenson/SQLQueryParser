@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import com.looker.sql_query_parser.parser.MySQLParser
 import com.looker.sql_query_parser.parser.ThrowingErrorListener
-import org.antlr.runtime.tree.ParseTree
+import org.antlr.v4.runtime.tree.ParseTree
 import org.junit.Assert
 
 class SimpleTest {
@@ -42,13 +42,18 @@ class SimpleTest {
         val root = preserveCase("SELECT * FROM USERS U JOIN ORDERS O ON U.ID = O.USER_ID")
     }
 
-    @Test fun `tests multiple joins`() {
+    @Test fun `tests and displays hierarchy for multiple joins`() {
         val sql = "SELECT * FROM users u JOIN orders o ON u.id = o.user_id JOIN part p ON p.id = p.part_id"
 //        val sql = "SELECT * FROM USERS U JOIN ORDERS O ON U.ID = O.USER_ID JOIN PART P ON P.ID = P.PART_ID"
         val root = preserveCase(sql)
         Assert.assertEquals("Should be 2 children", 2, root.childCount)
-        val children = root.children.filter({ parseTree -> true })
-        family(children)
+        family(root.children)
+    }
+
+    private fun originalText(node: ParseTree) : String {
+        // use the source.a._input property with the node's start and stop position to return the original
+        // version of the text that was parsed
+        return node.text
     }
 
     private fun getChildren(node: ParseTree) : List<ParseTree> {
@@ -58,7 +63,7 @@ class SimpleTest {
 
     private fun family(children: List<ParseTree>, indent: String = "") {
         for (child in children) {
-            println(indent + child.text)
+            println("$indent ${child.text} (${child.javaClass.simpleName})")
             family(getChildren(child), indent + "\t")
         }
     }
