@@ -31,7 +31,7 @@ Given a `SELECT` statement, extract all view schema that can be derived from the
 
 ### Extracting `ViewSchema` from `SELECT` grammar ASTs
 
-The AST produced from processing a SELECT statement is far more granular than we need for generating LookML. After producing the AST, we need `func CreateViewSchemaFromAST() -> ViewSchema`
+The AST produced from processing a SELECT statement is far more granular than we need for generating LookML. After producing the AST, we need `fun CreateViewSchemaFromAST() -> ViewSchema`
 
 The SELECT grammar must tolerate variances in SQL so dialect-specific functions and syntax can be processed without causing errors.
 
