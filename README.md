@@ -18,12 +18,14 @@ Given a `SELECT` statement, extract all view schema that can be derived from the
             - reference to Database schema object
             - `SQL` for "calculated" columns that are special SQL expressions
                 - if the SQL can be parsed to extract columnar reference, this should be used to reference the relevant schema object
+            - **Aliases** list of aliases used to refer to this column. The first alias encountered could be the candidate for view field names
         - reference to Database schema object
         - **`JOIN` types**
             - table name(s)
                 - key column(s)
                     - relationship (1:1, 1:Many)
             - `INNER`, `OUTER`, `LEFT`, `RIGHT`
+        - **Aliases** list of aliases use to refer to this table. The first alias encountered could be the candidate for the view name.
     - **Id**: hash key (based on tables, columns, and joins to use as unique view key)
     - **View(s)** collection of nested `ViewSchema` keys (based on subselects)
     - `fun hashKey() -> string`
