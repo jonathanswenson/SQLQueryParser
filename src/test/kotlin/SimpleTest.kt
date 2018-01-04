@@ -1,34 +1,15 @@
 
-import org.junit.Test
-import com.looker.sql_query_parser.parser.MySQLLexer
-import java.io.ByteArrayInputStream
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
 import com.looker.sql_query_parser.parser.MySQLParser
-import com.looker.sql_query_parser.parser.ThrowingErrorListener
+import com.looker.sql_query_parser.parser.ViewExtractor
+import com.looker.sql_query_parser.parser.getChildren
 import org.antlr.v4.runtime.tree.ParseTree
 import org.junit.Assert
+import org.junit.Test
 
 class SimpleTest {
 
-    private fun parseSql(sql: String) : MySQLParser.RootContext {
-        val upCommand = sql.toUpperCase()
-        val caseStream = CharStreams.fromStream(ByteArrayInputStream(sql.toByteArray()))
-        val inputStream = ByteArrayInputStream(upCommand.toByteArray())
-        val lexer = MySQLLexer(CharStreams.fromStream(inputStream))
-        val tokenStream = CommonTokenStream(lexer)
-
-        val parser = MySQLParser(tokenStream)
-        // use error listener to throw exception when parser fails (as opposed to just printing to console)
-        parser.removeErrorListeners();
-        parser.addErrorListener(ThrowingErrorListener.INSTANCE)
-        lexer._input = caseStream // set back to original case?
-
-        return parser.root()
-    }
-
-    private fun preserveCase(sql: String) : MySQLParser.RootContext {
-        val root = parseSql(sql)
+    fun preserveCase(sql: String) : MySQLParser.RootContext {
+        val root = ViewExtractor.ParseSql(sql)
         val source = root.getStart().tokenSource.inputStream.toString()
         Assert.assertEquals("Statement casing should be preserved in inputStream", sql, source)
         return root
@@ -43,28 +24,25 @@ class SimpleTest {
     }
 
     @Test fun `tests and displays hierarchy for multiple joins`() {
-        val sql = "SELECT * FROM users u JOIN orders o ON u.id = o.user_id JOIN part p ON p.id = p.part_id"
+        val sql = "SELECT birthdate, u.id userid, u.username, o.id orderid, o.orderdate, p.id partid, p.partname FROM users u LEFT OUTER JOIN orders o ON u.id = o.user_id RIGHT OUTER JOIN part p ON p.id = p.part_id"
 //        val sql = "SELECT * FROM USERS U JOIN ORDERS O ON U.ID = O.USER_ID JOIN PART P ON P.ID = P.PART_ID"
         val root = preserveCase(sql)
         Assert.assertEquals("Should be 2 children", 2, root.childCount)
         family(root.children)
     }
 
-    private fun originalText(node: ParseTree) : String {
-        // use the source.a._input property with the node's start and stop position to return the original
-        // version of the text that was parsed
-        return node.text
-    }
-
-    private fun getChildren(node: ParseTree) : List<ParseTree> {
-        val list = MutableList(node.childCount, {index : Int -> node.getChild(index)})
-        return list.filter({tree -> true})
-    }
-
     private fun family(children: List<ParseTree>, indent: String = "") {
-        for (child in children) {
+        children.forEach { child ->
             println("$indent ${child.text} (${child.javaClass.simpleName})")
-            family(getChildren(child), indent + "\t")
+            family(child.getChildren(), indent + "\t")
         }
+    }
+
+    @Test fun `extracts viewSchema`() {
+        val sql = "SELECT birthdate, u.id userid, u.username, o.id orderid, o.orderdate, p.id partid, p.partname FROM users u LEFT OUTER JOIN orders o ON u.id = o.user_id RIGHT OUTER JOIN part p ON p.id = p.part_id"
+        val extractor = ViewExtractor(sql)
+        val view = extractor.analyze()
+        Assert.assertEquals("Column count",7, view.columns.size)
+        Assert.assertEquals("Table count", 1, view.tables.size)
     }
 }
