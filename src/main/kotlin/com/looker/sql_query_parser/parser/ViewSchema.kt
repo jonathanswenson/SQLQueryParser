@@ -7,8 +7,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl
 import java.io.ByteArrayInputStream
 
 fun ParseTree.getChildren() : List<ParseTree> {
-    val list = MutableList(this.childCount, {index : Int -> this.getChild(index)})
-    return list.filter({tree -> true})
+    return (0 until this.childCount).map { index -> this.getChild(index) }
 }
 
 class Aliases(aList: MutableSet<String> = mutableSetOf()) : MutableSet<String> by aList
@@ -54,7 +53,7 @@ class Columns(aList: MutableSet<Column> = mutableSetOf()): MutableSet<Column> by
     fun find(column: Column) : Column? {
         var found = find(column.originalName)
         if (found == null) found = find(column.fullName())
-        if (found != null) column.aliases.forEach{ alias -> found.aliases.add(alias) } // add any missing aliases
+        if (found != null) column.aliases.forEach{ alias -> found.addAlias(alias) } // add any missing aliases
         return found
     }
 }
@@ -155,35 +154,26 @@ data class ViewSchema(val sql: String, var tables: Tables = Tables(), var column
 
             return parser.root()
         }
-
-        fun originalText(node: ParseTree) : String {
-            // TODO: figure out if we need this, and if so, implement it
-            // use the source.a._input property with the node's start and stop position to return the original
-            // version of the text that was parsed
-            return node.text
-        }
     }
 
     fun addTable(table: Table) : Table {
-        // TODO handle addition error
         tables.add(table)
         return table
     }
 
     fun addJoin(join: Join) : Join {
-        // TODO handle addition error
         joins.add(join)
         return join
     }
 
     private fun findTableForColumn(column: Column) {
-        val defaultTable = tables.firstOrNull()
-        if (defaultTable == null) return
+        val defaultTable = tables.firstOrNull() ?: return
         if (column.table == null) {
             val table = if (!column.tableName.isBlank()) tables.find(column.tableName)
             else {
                 // TODO 1. look for a column name in one of the SELECT tables that matches the column name
                 // if that's not found, assign the column's table to the default table
+                // (using the schema for the tables)
                 defaultTable
             }
             if (table != null) {
@@ -192,11 +182,9 @@ data class ViewSchema(val sql: String, var tables: Tables = Tables(), var column
                 column.tableName = table.name
             }
         }
-
     }
 
     fun addColumn(column: Column) : Column {
-        // TODO handle addition error
         findTableForColumn(column)
         var found = columns.find(column)
         if (found == null) {
