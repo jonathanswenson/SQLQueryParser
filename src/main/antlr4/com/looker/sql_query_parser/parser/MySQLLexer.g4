@@ -1125,14 +1125,14 @@ STRING_USER_NAME:                    (
                                      );
 LOCAL_ID:                            '@'
                                 (
-                                  [A-Z0-9._$]+
+                                  [A-Za-z0-9._$]+
                                   | SQUOTA_STRING
                                   | DQUOTA_STRING
                                   | BQUOTA_STRING
                                 );
 GLOBAL_ID:                           '@' '@'
                                 (
-                                  [A-Z0-9._$]+
+                                  [A-Za-z0-9._$]+
                                   | BQUOTA_STRING
                                 );
 
@@ -1150,7 +1150,7 @@ fragment CHARSET_NAME:               ARMSCII8 | ASCII | BIG5 | BINARY | CP1250
                                      | UTF8 | UTF8MB4;
 
 fragment EXPONENT_NUM_PART:          'E' '-'? DEC_DIGIT+;
-fragment ID_LITERAL:                 [A-Z_$0-9]*?[A-Z_$]+?[A-Z_$0-9]*;
+fragment ID_LITERAL:                 [A-Za-z_$0-9]*?[A-Za-z_$]+?[A-Za-z_$0-9]*;
 fragment DQUOTA_STRING:              '"' ( '\\'. | '""' | ~('"'| '\\') )* '"';
 fragment SQUOTA_STRING:              '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
 fragment BQUOTA_STRING:              '`' ( '\\'. | '``' | ~('`'|'\\'))* '`';
