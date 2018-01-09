@@ -12,7 +12,7 @@ fun ParseTree.getChildren() : List<ParseTree> {
 
 class Aliases(aList: MutableSet<String> = mutableSetOf()) : MutableSet<String> by aList
 
-data class Column(var originalName: String, var aliases: Aliases = Aliases()) {
+data class Column(var originalName: String, var aliases: Aliases = Aliases(), var is_id : Boolean = false) {
     var database : String = ""
     var tableName : String = ""
     var name : String = ""
@@ -119,10 +119,9 @@ class Joins(aList: MutableSet<Join> = mutableSetOf()): MutableSet<Join> by aList
                 col.table.aliases.any { alias -> alias.equals(nameOrAlias, true) }
         }
     }
-
 }
 
-data class ViewSchema(val sql: String, var tables: Tables = Tables(), var columns : Columns = Columns(),
+data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: Tables = Tables(), var columns : Columns = Columns(),
                       var joins: Joins = Joins()) {
     var ast : MySQLParser.RootContext
 
@@ -259,6 +258,7 @@ data class ViewSchema(val sql: String, var tables: Tables = Tables(), var column
             when (item) {
                 is MySQLParser.FullColumnNameExpressionAtomContext -> {
                     column = selectColumn(item)
+                    column.is_id = true
                     if (leftColumn == null) leftColumn = column
                     else rightColumn = column
                 }

@@ -1,6 +1,6 @@
 
 import com.looker.sql_query_parser.parser.MySQLParser
-import com.looker.sql_query_parser.parser.ViewSchema
+import com.looker.sql_query_parser.parser.ExploreSchema
 import com.looker.sql_query_parser.parser.getChildren
 import org.antlr.v4.runtime.tree.ParseTree
 import org.junit.Assert
@@ -11,7 +11,7 @@ class SimpleTest {
     val sql = "SELECT birthdate, u.id userid, u.username, o.id orderid, o.orderdate, p.id partid, p.partname FROM users u JOIN orders o ON u.id = o.user_id RIGHT OUTER JOIN parts p ON p.id = o.part_id"
 
     fun preserveCase(sql: String) : MySQLParser.RootContext {
-        val root = ViewSchema.ParseSql(sql)
+        val root = ExploreSchema.ParseSql(sql)
         val source = root.getStart().tokenSource.inputStream.toString()
         Assert.assertEquals("Statement casing should be preserved in inputStream", sql, source)
         return root
@@ -40,8 +40,8 @@ class SimpleTest {
         }
     }
 
-    @Test fun `extracts viewSchema`() {
-        val schema = ViewSchema(sql)
+    @Test fun `extracts ExploreSchema`() {
+        val schema = ExploreSchema(sql)
         Assert.assertEquals("Column count",9, schema.columns.size)
         Assert.assertEquals("Table count", 3, schema.tables.size)
         Assert.assertEquals("Join count", 2, schema.joins.size)
@@ -57,6 +57,7 @@ class SimpleTest {
         Assert.assertNotNull("UserID alias column found", userid)
         Assert.assertEquals("UserID Table is USERS", tableUsers, userid!!.table)
         Assert.assertEquals("USERS.ID", userid.fullName())
+        Assert.assertTrue(userid.is_id)
 
         val tableOrders = schema.tables.find("orders")
         Assert.assertNotNull("Orders table exists", tableOrders)
