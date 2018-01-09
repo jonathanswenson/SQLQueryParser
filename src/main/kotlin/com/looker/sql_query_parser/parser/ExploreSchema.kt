@@ -132,13 +132,13 @@ data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: 
     private var rightColumn : Column? = null
 
     init {
-        ast = ParseSql(sql)
+        ast = parseSql(sql)
         processNodes(ast.children)
         resolve()
     }
 
     companion object {
-        fun ParseSql(sql: String) : MySQLParser.RootContext {
+        fun parseSql(sql: String) : MySQLParser.RootContext {
             val upCommand = sql.toUpperCase()
             val caseStream = CharStreams.fromStream(ByteArrayInputStream(sql.toByteArray()))
             val inputStream = ByteArrayInputStream(upCommand.toByteArray())
@@ -149,9 +149,9 @@ data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: 
             // use error listener to throw exception when parser fails (as opposed to just printing to console)
             parser.removeErrorListeners()
             parser.addErrorListener(ThrowingErrorListener.INSTANCE)
+            val root = parser.root()
             lexer._input = caseStream // set back to original case
-
-            return parser.root()
+            return root
         }
     }
 
@@ -205,7 +205,6 @@ data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: 
                 join.rightColumn = join.leftColumn
                 join.leftColumn = column
             }
-
         }
     }
 
@@ -224,8 +223,8 @@ data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: 
         val aliases = Aliases()
         node.getChildren().forEach { item ->
             when (item) {
-                is MySQLParser.TableNameContext -> name = item.text
-                is MySQLParser.UidContext -> aliases.add(item.text)
+                is MySQLParser.TableNameContext -> name = sqlText(item.start.startIndex, item.stop.stopIndex)
+                is MySQLParser.UidContext -> aliases.add(sqlText(item.start.startIndex, item.stop.stopIndex))
             }
         }
         return addTable(Table(name, aliases = aliases))
@@ -241,13 +240,22 @@ data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: 
         }
     }
 
+    private fun sqlText(start: Int, stop: Int) : String {
+        return sql.substring(start, stop + 1)
+    }
+
     private fun selectColumn(node: ParseTree) : Column {
         var name = ""
         val aliases = Aliases()
         node.getChildren().forEach { item ->
             when (item) {
-                is MySQLParser.FullColumnNameContext -> name = item.text
-                is MySQLParser.UidContext -> aliases.add(item.text)
+                is MySQLParser.FullColumnNameContext -> {
+//                    name = item.text
+                    name = sqlText(item.start.startIndex, item.stop.stopIndex)
+                }
+                is MySQLParser.UidContext -> {
+                    aliases.add(sqlText(item.start.startIndex, item.stop.stopIndex))
+                }
             }
         }
         return addColumn(Column(name, aliases))
