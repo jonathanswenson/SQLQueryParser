@@ -107,7 +107,7 @@ enum class JoinType {
     NATURAL
 }
 
-data class Join(val table: Table, val leftColumn: Column, val rightColumn: Column,
+data class Join(val table: Table, var leftColumn: Column, var rightColumn: Column,
                 val inner: Boolean = true, val left: Boolean = true, var type : JoinType = JoinType.INNER) {
     val outer = !inner
     val right = !left
@@ -194,8 +194,18 @@ data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: 
     }
 
     private fun resolve() {
+        val firstTable = tables.first()
         columns.forEach { column ->
             findTableForColumn(column)
+        }
+        joins.forEach { join ->
+            if (join.rightColumn.table?.name.equals(firstTable.name, true)) {
+                // swap left and right
+                val column = join.rightColumn
+                join.rightColumn = join.leftColumn
+                join.leftColumn = column
+            }
+
         }
     }
 

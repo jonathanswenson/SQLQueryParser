@@ -8,7 +8,7 @@ import org.junit.Test
 
 class SimpleTest {
 
-    val sql = "SELECT birthdate, u.id userid, u.username, o.id orderid, o.orderdate, p.id partid, p.partname FROM users u JOIN orders o ON u.id = o.user_id RIGHT OUTER JOIN parts p ON p.id = o.part_id"
+    val sql = "SELECT birthdate, u.id userid, u.username, o.id orderid, o.orderdate, c.id contactid, c.email FROM users u JOIN orders o ON u.id = o.user_id RIGHT OUTER JOIN contacts c ON c.user_id = u.id"
 
     fun preserveCase(sql: String) : MySQLParser.RootContext {
         val root = ExploreSchema.ParseSql(sql)
@@ -63,15 +63,15 @@ class SimpleTest {
         Assert.assertNotNull("Orders table exists", tableOrders)
         Assert.assertEquals("Expected Orders table", "ORDERS", tableOrders!!.name)
         Assert.assertTrue("Orders alias 'O' exists", tableOrders.aliases.any { alias -> alias.equals("O", true)})
-        Assert.assertEquals( "Orders table column count", 4, tableOrders.columns.size)
+        Assert.assertEquals( "Orders table column count", 3, tableOrders.columns.size)
         Assert.assertTrue( "All columns have full table name", tableOrders.columns.all { col -> col.tableName == tableOrders.name})
 
-        val tableParts = schema.tables.find("parts")
-        Assert.assertNotNull("Parts table exists", tableParts)
-        Assert.assertEquals("Expected Parts table", "PARTS", tableParts!!.name)
-        Assert.assertTrue("Parts alias 'P' exists", tableParts.aliases.any { alias -> alias.equals("P", true)})
-        Assert.assertEquals( "Parts table column count", 2, tableParts.columns.size)
-        Assert.assertTrue( "All columns have full table name", tableParts.columns.all { col -> col.tableName == tableParts.name})
+        val tableContacts = schema.tables.find("contacts")
+        Assert.assertNotNull("Contacts table exists", tableContacts)
+        Assert.assertEquals("Expected Contacts table", "CONTACTS", tableContacts!!.name)
+        Assert.assertTrue("Contacts alias 'C' exists", tableContacts.aliases.any { alias -> alias.equals("C", true)})
+        Assert.assertEquals( "Contacts table column count", 3, tableContacts.columns.size)
+        Assert.assertTrue( "All columns have full table name", tableContacts.columns.all { col -> col.tableName == tableContacts.name})
 
         val joinOrders = schema.joins.find("orders")
         Assert.assertNotNull("Orders join exists", joinOrders)
@@ -81,12 +81,12 @@ class SimpleTest {
         Assert.assertEquals("USERS.ID", joinOrders.leftColumn.fullName())
         Assert.assertEquals("ORDERS.USER_ID", joinOrders.rightColumn.fullName())
 
-        val joinParts = schema.joins.find("parts")
-        Assert.assertNotNull("Parts join exists", joinParts)
-        Assert.assertEquals("Parts table name", "PARTS", joinParts!!.table.name)
-        Assert.assertTrue("Parts is RIGHT join", joinParts.right)
-        Assert.assertTrue("Parts is OUTER join", joinParts.outer)
-        Assert.assertEquals("PARTS.ID", joinParts.leftColumn.fullName())
-        Assert.assertEquals("ORDERS.PART_ID", joinParts.rightColumn.fullName())
+        val joinContacts = schema.joins.find("contacts")
+        Assert.assertNotNull("Contacts join exists", joinContacts)
+        Assert.assertEquals("Contacts table name", "CONTACTS", joinContacts!!.table.name)
+        Assert.assertTrue("Contacts is RIGHT join", joinContacts.right)
+        Assert.assertTrue("Contacts is OUTER join", joinContacts.outer)
+        Assert.assertEquals("USERS.ID", joinContacts.leftColumn.fullName())
+        Assert.assertEquals("CONTACTS.USER_ID", joinContacts.rightColumn.fullName())
     }
 }
