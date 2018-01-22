@@ -1,8 +1,14 @@
 
+import com.looker.sql_query_parser.parser.CalciteExploreSchema
 import com.looker.sql_query_parser.parser.MySQLParser
 import com.looker.sql_query_parser.parser.ExploreSchema
 import com.looker.sql_query_parser.parser.getChildren
 import org.antlr.v4.runtime.tree.ParseTree
+import org.apache.calcite.avatica.util.Quoting
+import org.apache.calcite.sql.SqlNode
+import org.apache.calcite.sql.SqlOrderBy
+import org.apache.calcite.sql.SqlSelect
+import org.apache.calcite.sql.parser.SqlParser
 import org.junit.Assert
 import org.junit.Test
 
@@ -15,6 +21,11 @@ class SimpleTest {
         val source = root.getStart().tokenSource.inputStream.toString()
         Assert.assertEquals("Statement casing should be preserved in inputStream", sql, source)
         return root
+    }
+
+    @Test fun someStuffHere() {
+        val sql2 = "select id as super, ucase(name) as upper_name from users as u"
+        val schema = CalciteExploreSchema(sql2)
     }
 
     @Test fun `tests simple select`() {
@@ -45,7 +56,7 @@ class SimpleTest {
         Assert.assertEquals("Column count",9, schema.columns.size)
         Assert.assertEquals("Table count", 3, schema.tables.size)
         Assert.assertEquals("Join count", 2, schema.joins.size)
-        
+
         val tableUsers = schema.tables.find("users")
         Assert.assertNotNull("first table exists", tableUsers)
         Assert.assertTrue("Expected users table", tableUsers!!.name.equals("users",true))

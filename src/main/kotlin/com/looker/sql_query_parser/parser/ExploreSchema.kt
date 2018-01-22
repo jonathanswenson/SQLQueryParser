@@ -4,7 +4,13 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
+import org.apache.calcite.avatica.util.Quoting
+import org.apache.calcite.sql.*
 import java.io.ByteArrayInputStream
+import org.apache.calcite.sql.parser.SqlParser
+import org.apache.calcite.sql.util.SqlBasicVisitor
+import org.apache.calcite.sql.util.SqlVisitor
+
 
 fun ParseTree.getChildren() : List<ParseTree> {
     return (0 until this.childCount).map { index -> this.getChild(index) }
@@ -121,8 +127,42 @@ class Joins(aList: MutableSet<Join> = mutableSetOf()): MutableSet<Join> by aList
     }
 }
 
-data class ExploreSchema @JvmOverloads constructor(val sql: String, var tables: Tables = Tables(), var columns : Columns = Columns(),
-                      var joins: Joins = Joins()) {
+interface IExploreSchema {
+    val sql: String
+    var tables: Tables
+    var columns: Columns
+    var joins: Joins
+}
+
+data class CalciteExploreSchema constructor(override val sql: String, override var tables: Tables = Tables(), override var columns : Columns = Columns(),
+                                            override var joins: Joins = Joins()) : IExploreSchema {
+    private var ast : SqlNode
+    init {
+        ast = parseSql(sql)
+        processNode(ast)
+    }
+
+    companion object {
+         private fun parseSql(sql: String) : SqlNode {
+             val config = SqlParser.configBuilder().setQuoting(Quoting.BACK_TICK).build()
+             val parser = SqlParser.create(sql, config)
+             return parser.parseQuery()
+         }
+    }
+
+    fun processNode(nodes: SqlNode) {
+        val visitor = object : SqlBasicVisitor<Unit>() {
+            override fun visit(call: SqlCall) {
+                super.visit(call)
+            }
+        }
+
+        nodes.accept(visitor)
+    }
+}
+
+data class ExploreSchema @JvmOverloads constructor(override val sql: String, override var tables: Tables = Tables(), override var columns : Columns = Columns(),
+                                                   override var joins: Joins = Joins()) : IExploreSchema {
     var ast : MySQLParser.RootContext
 
     private var leftJoin = true
