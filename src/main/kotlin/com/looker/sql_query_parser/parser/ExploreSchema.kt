@@ -9,7 +9,10 @@ import org.apache.calcite.sql.*
 import java.io.ByteArrayInputStream
 import org.apache.calcite.sql.parser.SqlParser
 import org.apache.calcite.sql.util.SqlBasicVisitor
+import org.apache.calcite.sql.util.SqlShuttle
 import org.apache.calcite.sql.util.SqlVisitor
+import org.apache.calcite.sql.validate.SelectScope
+import org.apache.calcite.sql.validate.SqlScopedShuttle
 
 
 fun ParseTree.getChildren() : List<ParseTree> {
@@ -150,10 +153,58 @@ data class CalciteExploreSchema constructor(override val sql: String, override v
          }
     }
 
+    private fun select(node: SqlSelect) {
+        node.selectList.forEach({ selectClause ->
+            when (selectClause) {
+                is SqlIdentifier -> columns.add(Column(selectClause.names.joinToString(".")))
+                is SqlBasicCall -> {
+                    if (selectClause.operator is SqlAsOperator) {
+
+                        val left = selectClause.operands[0]
+                        val right = selectClause.operands[1]
+
+                        if (left is SqlIdentifier && right is SqlIdentifier) {
+                            val aliases = Aliases()
+
+                            aliases.add(right.names.joinToString("."))
+                            columns.add(Column(left.names.joinToString("."), aliases))
+                        } else {
+                            // this is more complicated
+                        }
+
+                    }
+                }
+            }
+        })
+
+        val from = node.from
+
+        when (from) {
+            is SqlIdentifier -> {
+                tables.add(Table(from.names.joinToString(".")))
+            }
+            is SqlBasicCall -> {
+                val operator = from.operator
+
+                if (operator is SqlAsOperator) {
+                    val left = from.operands[0]
+                    val right = from.operands[1]
+
+                    if (left is SqlIdentifier && right is SqlIdentifier) {
+                        val a = Aliases()
+                        a.add(right.names.joinToString("."))
+                        tables.add(Table(left.names.joinToString("."), Columns(), a))
+                    }
+                }
+            }
+        }
+    }
+
     fun processNode(nodes: SqlNode) {
-        val visitor = object : SqlBasicVisitor<Unit>() {
-            override fun visit(call: SqlCall) {
-                super.visit(call)
+        val visitor = object : SqlShuttle() {
+            override fun visit(identifier : SqlIdentifier) : SqlNode {
+                println(identifier)
+                return identifier
             }
         }
 

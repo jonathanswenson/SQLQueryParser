@@ -4,13 +4,38 @@ import com.looker.sql_query_parser.parser.MySQLParser
 import com.looker.sql_query_parser.parser.ExploreSchema
 import com.looker.sql_query_parser.parser.getChildren
 import org.antlr.v4.runtime.tree.ParseTree
+import org.apache.calcite.DataContext
 import org.apache.calcite.avatica.util.Quoting
+import org.apache.calcite.linq4j.Enumerable
+import org.apache.calcite.plan.RelOptUtil
+import org.apache.calcite.rel.RelNode
+import org.apache.calcite.rel.RelNodes
+import org.apache.calcite.rel.RelShuttle
+import org.apache.calcite.rel.RelShuttleImpl
+import org.apache.calcite.rel.core.Join
+import org.apache.calcite.rel.core.TableFunctionScan
+import org.apache.calcite.rel.core.TableScan
+import org.apache.calcite.rel.logical.LogicalJoin
+import org.apache.calcite.rel.type.RelDataType
+import org.apache.calcite.rel.type.RelDataTypeFactory
+import org.apache.calcite.rex.RexNode
+import org.apache.calcite.runtime.ResultSetEnumerable
+import org.apache.calcite.schema.FilterableTable
+import org.apache.calcite.schema.Table
+import org.apache.calcite.schema.impl.AbstractTable
+import org.apache.calcite.sql.SqlIdentifier
 import org.apache.calcite.sql.SqlNode
 import org.apache.calcite.sql.SqlOrderBy
 import org.apache.calcite.sql.SqlSelect
 import org.apache.calcite.sql.parser.SqlParser
+import org.apache.calcite.sql.type.SqlTypeName
+import org.apache.calcite.sql.util.SqlShuttle
 import org.junit.Assert
 import org.junit.Test
+import org.apache.calcite.tools.Frameworks
+import org.apache.calcite.tools.Planner
+
+
 
 class SimpleTest {
 
@@ -23,9 +48,60 @@ class SimpleTest {
         return root
     }
 
+    class SimpleTable(val types : List<Pair<String, SqlTypeName>>) : AbstractTable() {
+    //        protected var fieldTypes: List<RelDataType> = ArrayList<RelDataType>()
+
+        override fun getRowType(typeFactory: RelDataTypeFactory): RelDataType {
+            // not sure how to convert to the right type other than doing this
+            val mutableMap = HashMap<String, RelDataType>()
+            for ((x, y) in types) {
+                mutableMap.put(x, typeFactory.createSqlType(y))
+            }
+            val entries = mutableMap.entries.toList()
+            return typeFactory.createStructType(entries)
+        }
+    }
+
     @Test fun someStuffHere() {
-        val sql2 = "select id as super, ucase(name) as upper_name from users as u"
-        val schema = CalciteExploreSchema(sql2)
+        val sql2 = "select u.id + 10 * oi.amount as super, u.name as upper_name, o.status from users as u join orders as o on u.id = o.user_id + 1 join order_items as oi on oi.order_id = o.id where status LIKE '%c%'"
+//        val sql2 = "Select * from (select orders.user_id, orders.id, sum(amount) as total_amount from orders join order_items on orders.id = order_items.order_id group by orders.id, orders.user_id) as o join users on o.user_id = users.id"
+//        val sql2 = "Select orders.user_id, orders.id, users.id, users.name, sum(amount) total_amount from users join orders on users.id = orders.user_id join order_items on order_items.order_id = orders.id group by orders.id, orders.user_id, users.id, users.name"
+        val parserConfig = SqlParser.configBuilder().setQuoting(Quoting.BACK_TICK).build()
+        val configBuilder = Frameworks.newConfigBuilder()
+
+        val schema = Frameworks.createRootSchema(false)
+
+        schema.add("USERS", SimpleTable(arrayListOf("ID", "NAME").zip(arrayListOf(SqlTypeName.INTEGER, SqlTypeName.VARCHAR))))
+        schema.add("ORDERS", SimpleTable( arrayListOf("USER_ID", "STATUS", "ID").zip(arrayListOf(SqlTypeName.INTEGER, SqlTypeName.VARCHAR, SqlTypeName.INTEGER))))
+        schema.add("ORDER_ITEMS", SimpleTable(arrayListOf("ORDER_ID", "AMOUNT", "ID").zip(arrayListOf(SqlTypeName.INTEGER, SqlTypeName.INTEGER, SqlTypeName.INTEGER))))
+
+        configBuilder.defaultSchema(schema)
+        configBuilder.parserConfig(parserConfig)
+        val config = configBuilder.build()
+
+        val planner = Frameworks.getPlanner(config)
+
+        val relRoot = planner.rel(planner.validate(planner.parse(sql2)))
+
+        val rootString = RelOptUtil.toString(relRoot.project());
+
+        val shuttle = object : RelShuttleImpl() {
+            override fun visit(table : TableScan) : RelNode {
+                println(table.table.qualifiedName.joinToString("."))
+                return super.visit(table)
+            }
+
+            override fun visit(join : LogicalJoin) : RelNode {
+                val condition = join.condition
+
+                return super.visit(join)
+            }
+        }
+
+        println(relRoot.rel.accept(shuttle))
+        println(rootString)
+        println(relRoot.fields)
+
     }
 
     @Test fun `tests simple select`() {
