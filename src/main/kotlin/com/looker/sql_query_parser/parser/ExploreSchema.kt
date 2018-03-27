@@ -21,10 +21,20 @@ fun ParseTree.getChildren() : List<ParseTree> {
 
 class Aliases(aList: MutableSet<String> = mutableSetOf()) : MutableSet<String> by aList
 
-data class Column(var originalName: String, var aliases: Aliases = Aliases(), var is_id : Boolean = false) {
-    var database : String = ""
-    var tableName : String = ""
-    var name : String = ""
+interface ISchemaColumn {
+    var originalName: String
+    var aliases : Aliases
+    var is_id : Boolean
+    var database: String
+    var name : String
+    var tableName : String
+    fun fullName() : String
+}
+
+data class Column(override var originalName: String, override var aliases: Aliases = Aliases(), override var is_id : Boolean = false)  : ISchemaColumn {
+    override var database : String = ""
+    override var tableName : String = ""
+    override var name : String = ""
     init {
         val parts = originalName.split('.')
         when (parts.size) {
@@ -42,7 +52,7 @@ data class Column(var originalName: String, var aliases: Aliases = Aliases(), va
     }
     var table: Table? = null
     fun addAlias(alias : String) : Boolean = aliases.add(alias)
-    fun fullName() : String {
+    override fun fullName() : String {
         if (database.isBlank()) {
             if (tableName.isBlank()) return name
             return "${tableName}.${name}"
@@ -127,6 +137,21 @@ class Joins(aList: MutableSet<Join> = mutableSetOf()): MutableSet<Join> by aList
         return this.firstOrNull { col -> col.table.name.equals(nameOrAlias,true) ||
                 col.table.aliases.any { alias -> alias.equals(nameOrAlias, true) }
         }
+    }
+}
+
+interface ISchemaFinder {
+    fun getColumn(name: String) : ISchemaColumn
+    fun getTable(name: String) : Table
+}
+
+// Interop/interface callback test functions
+class SchemaFinder (private val finder: ISchemaFinder) {
+    fun findColumn(name: String) : ISchemaColumn {
+        return finder.getColumn(name)
+    }
+    fun findTable(name: String) : Table {
+        return finder.getTable(name)
     }
 }
 
