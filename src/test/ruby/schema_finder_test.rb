@@ -1,5 +1,4 @@
 require 'java'
-# require 'rspec'
 require 'minitest/autorun'
 
 java_import com.looker.sql_query_parser.parser.SchemaFinder
