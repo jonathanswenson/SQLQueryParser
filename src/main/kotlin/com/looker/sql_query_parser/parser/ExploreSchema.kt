@@ -13,7 +13,34 @@ import org.apache.calcite.sql.util.SqlShuttle
 import org.apache.calcite.sql.util.SqlVisitor
 import org.apache.calcite.sql.validate.SelectScope
 import org.apache.calcite.sql.validate.SqlScopedShuttle
+import org.jruby.Ruby
+import org.jruby.embed.ScriptingContainer
+import org.jruby.runtime.builtin.IRubyObject
+import jdk.nashorn.internal.codegen.CompilerConstants.className
 
+
+// Utility class for Ruby scripting
+class RubyScript {
+    companion object {
+        // https://softwareengineering.stackexchange.com/a/180506/3897
+        var scripter: ScriptingContainer = ScriptingContainer() // LocalVariableBehavior.PERSISTENT)
+        private var runtime: Ruby
+
+        init {
+            runtime = scripter.getProvider().getRuntime()
+        }
+
+        @JvmStatic fun RubyObject(script: String) : IRubyObject {
+            return scripter.runScriptlet(script) as IRubyObject
+        }
+
+        @JvmStatic fun InitObject(name: String) : IRubyObject {
+            val clazz = Class.forName(name).newInstance()
+            return clazz as IRubyObject
+        }
+    }
+
+}
 
 fun ParseTree.getChildren() : List<ParseTree> {
     return (0 until this.childCount).map { index -> this.getChild(index) }
@@ -143,6 +170,8 @@ class Joins(aList: MutableSet<Join> = mutableSetOf()): MutableSet<Join> by aList
 interface ISchemaFinder {
     fun getColumn(name: String) : ISchemaColumn
     fun getTable(name: String) : Table
+    fun addColumn(column: ISchemaColumn) : ISchemaColumn
+
 }
 
 // Interop/interface callback test functions
